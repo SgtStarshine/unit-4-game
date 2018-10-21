@@ -1,214 +1,290 @@
-//Global variables
 $(document).ready(function() {
 
-//Array of Playable Characters
+var victory = new Audio('assets/FFXIV_Level_up.mp3');
+var enemyBeaten = new Audio('assets/FFXIV_Limit_Break_Unlocked.mp3');
+var startFight = new Audio('assets/FFXIV_Full_Party.mp3');
+var lose = new Audio('assets/FFXIV_Instance_Failed.mp3')
+var selectSFX = new Audio('assets/FFXIV_Confirm.mp3')
+  
 let characters = {
     'paladin': {
         name: 'paladin',
-        health: 120,
+        health: 230,
         attack: 8,
         imageUrl: "assets/images/ffxiv_twi05001.png",
-        enemyAttackBack: 15
+        counterAttack: 15
     }, 
     'warrior': {
         name: 'warrior',
-        health: 100,
-        attack: 14,
+        health: 250,
+        attack: 6,
         imageUrl: "assets/images/ffxiv_twi05003.png",
-        enemyAttackBack: 5
-    }, 
+        counterAttack: 17
+    },
     'dark-knight': {
-        name: 'dark-knight',
-        health: 150,
-        attack: 8,
-        imageUrl: "assets/images/ffxiv_twi05012.png",
-        enemyAttackBack: 20
+      name: 'dark-knight',
+      health: 200,
+      attack: 11,
+      imageUrl: "assets/images/ffxiv_twi05012.png",
+      counterAttack: 20
+    },
+    'dragoon': {
+      name: 'dragoon',
+      health: 90,
+      attack: 22,
+      imageUrl: "assets/images/ffxiv_twi05004.png",
+      counterAttack: 28
+    },
+    'monk': {
+      name: 'monk',
+      health: 70,
+      attack: 26,
+      imageUrl: "assets/images/ffxiv_twi05002.png",
+      counterAttack: 32
+    },
+    'ninja': {
+      name: 'ninja',
+      health: 80,
+      attack: 23,
+      imageUrl: "assets/images/ffxiv_twi05010.png",
+      counterAttack: 26
     }, 
     
 };
 
-var currSelectedCharacter;
-var currDefender;
+var playerChar;
+var curDef;
 var combatants = [];
-var indexofSelChar;
-var attackResult;
 var turnCounter = 1;
 var killCount = 0;
 
 
-var renderOne = function(character, renderArea, makeChar) {
-    //character: obj, renderArea: class/id, makeChar: string
+  var renderOne = function(character, renderArea, makeChar) {
+
     var charDiv = $("<div class='character' data-name='" + character.name + "'>");
     var charName = $("<div class='character-name'>").text(character.name);
     var charImage = $("<img alt='image' class='character-image'>").attr("src", character.imageUrl);
     var charHealth = $("<div class='character-health'>").text(character.health);
+
     charDiv.append(charName).append(charImage).append(charHealth);
+
     $(renderArea).append(charDiv);
-    //Capitalizes the first letter in characters name
-    // $('.character').css('textTransform', 'capitalize');
-    // conditional render
+
     if (makeChar == 'enemy') {
+
       $(charDiv).addClass('enemy');
+
     } else if (makeChar == 'defender') {
-      currDefender = character;
+
+      curDef = character;
+
       $(charDiv).addClass('target-enemy');
+
     }
   };
 
-  // Create function to render game message to DOM
   var renderMessage = function(message) {
+
     var gameMesageSet = $("#gameMessage");
     var newMessage = $("<div>").text(message);
+
     gameMesageSet.append(newMessage);
 
     if (message == 'clearMessage') {
+
       gameMesageSet.text('');
+
     }
   };
 
-  var renderCharacters = function(charObj, areaRender) {
-    //render all characters
+  var charRender = function(charObj, areaRender) {
+
     if (areaRender == '#characters-section') {
+
       $(areaRender).empty();
+
       for (var key in charObj) {
+
         if (charObj.hasOwnProperty(key)) {
+
           renderOne(charObj[key], areaRender, '');
         }
       }
     }
-    //render player character
+
     if (areaRender == '#selected-character') {
-      $('#selected-character').prepend("Your Character");       
+
+      $('#selected-character').prepend("Your Character");   
+
       renderOne(charObj, areaRender, '');
+
       $('#attack-button').css('visibility', 'visible');
     }
-    //render combatants
-    if (areaRender == '#available-to-attack-section') {
-        $('#available-to-attack-section').prepend("Choose Your Next Opponent");      
+
+    if (areaRender == '#opponent-roster') {
+
+        $('#opponent-roster').prepend("Choose Your Next Opponent"); 
+
       for (var i = 0; i < charObj.length; i++) {
 
         renderOne(charObj[i], areaRender, 'enemy');
       }
-      //render one enemy to defender area
+
       $(document).on('click', '.enemy', function() {
-        //select an combatant to fight
+
         name = ($(this).data('name'));
-        //if defernder area is empty
+
         if ($('#defender').children().length === 0) {
-          renderCharacters(name, '#defender');
+
+          charRender(name, '#defender');
+
           $(this).hide();
+
           renderMessage("clearMessage");
+
+          startFight.play();
         }
       });
     }
-    //render defender
+
     if (areaRender == '#defender') {
+
       $(areaRender).empty();
+
       for (var i = 0; i < combatants.length; i++) {
-        //add enemy to defender area
+
         if (combatants[i].name == charObj) {
+
           $('#defender').append("Your selected opponent")
           renderOne(combatants[i], areaRender, 'defender');
+
         }
       }
     }
-    //re-render defender when attacked
+
     if (areaRender == 'playerDamage') {
+
       $('#defender').empty();
+
       $('#defender').append("Your selected opponent")
+
       renderOne(charObj, '#defender', 'defender');
-      lightsaber.play();
     }
-    //re-render player character when attacked
+
     if (areaRender == 'enemyDamage') {
+
       $('#selected-character').empty();
+
       renderOne(charObj, '#selected-character', '');
     }
-    //render defeated enemy
+
     if (areaRender == 'enemyDefeated') {
+
       $('#defender').empty();
+
       var gameStateMessage = "You have defated " + charObj.name + ", you can choose to fight another enemy.";
+      
+      enemyBeaten.play();
+
       renderMessage(gameStateMessage);
-      blaster.play();
     }
   };
-  //this is to render all characters for user to choose their computer
-  renderCharacters(characters, '#characters-section');
+
+  charRender(characters, '#characters-section');
+
   $(document).on('click', '.character', function() {
+
     name = $(this).data('name');
-    //if no player char has been selected
-    if (!currSelectedCharacter) {
-      currSelectedCharacter = characters[name];
+
+    if (!playerChar) {
+
+      playerChar = characters[name];
+
       for (var key in characters) {
+
         if (key != name) {
+
           combatants.push(characters[key]);
         }
       }
+
+      selectSFX.play();
+
       $("#characters-section").hide();
-      renderCharacters(currSelectedCharacter, '#selected-character');
-      //this is to render all characters for user to choose fight against
-      renderCharacters(combatants, '#available-to-attack-section');
+
+      charRender(playerChar, '#selected-character');
+
+      charRender(combatants, '#opponent-roster');
     }
   });
 
-  // ----------------------------------------------------------------
-  // Create functions to enable actions between objects.
   $("#attack-button").on("click", function() {
-    //if defernder area has enemy
+    
     if ($('#defender').children().length !== 0) {
-      //defender state change
-      var attackMessage = "You attacked " + currDefender.name + " for " + (currSelectedCharacter.attack * turnCounter) + " damage.";
-      renderMessage("clearMessage");
-      //combat
-      currDefender.health = currDefender.health - (currSelectedCharacter.attack * turnCounter);
 
-      //win condition
-      if (currDefender.health > 0) {
-        //enemy not dead keep playing
-        renderCharacters(currDefender, 'playerDamage');
-        //player state change
-        var counterAttackMessage = currDefender.name + " attacked you back for " + currDefender.enemyAttackBack + " damage.";
+      var attackMessage = "You attacked " + curDef.name + " for " + (playerChar.attack * turnCounter) + " damage.";
+      renderMessage("clearMessage");
+
+      curDef.health = curDef.health - (playerChar.attack * turnCounter);
+
+      if (curDef.health > 0) {
+        
+        charRender(curDef, 'playerDamage');
+        
+        var counterAttackMessage = curDef.name + " attacked you back for " + curDef.counterAttack + " damage.";
+
         renderMessage(attackMessage);
         renderMessage(counterAttackMessage);
 
-        currSelectedCharacter.health = currSelectedCharacter.health - currDefender.enemyAttackBack;
-        renderCharacters(currSelectedCharacter, 'enemyDamage');
-        if (currSelectedCharacter.health <= 0) {
+        playerChar.health = playerChar.health - curDef.counterAttack;
+
+        charRender(playerChar, 'enemyDamage');
+
+        if (playerChar.health <= 0) {
+
           renderMessage("clearMessage");
           restartGame("You have been defeated...GAME OVER!!!");
-          force.play();
           $("#attack-button").unbind("click");
+          lose.play();
         }
       } else {
-        renderCharacters(currDefender, 'enemyDefeated');
+
+        charRender(curDef, 'enemyDefeated');
+
+        
+
         killCount++;
-        if (killCount >= 3) {
+
+        if (killCount >= 5) {
+
           renderMessage("clearMessage");
           restartGame("You Won!!!! GAME OVER!!!");
-          jediKnow.play();
-          // The following line will play the imperial march:
-          setTimeout(function() {
-          audio.play();
-          }, 2000);
+          victory.play();
 
         }
       }
+
       turnCounter++;
+
     } else {
       renderMessage("clearMessage");
       renderMessage("No enemy here.");
-      rtwoo.play();
     }
   });
 
-//Restarts the game - renders a reset button
+  
   var restartGame = function(inputEndGame) {
-    //When 'Restart' button is clicked, reload the page.
+    
     var restart = $('<button class="btn">Restart</button>').click(function() {
+
       location.reload();
+
     });
+
     var gameState = $("<div>").text(inputEndGame);
+
     $("#gameMessage").append(gameState);
+
     $("#gameMessage").append(restart);
   };
 

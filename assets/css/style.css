@@ -1,17 +1,15 @@
-/*---------------------*/
-/* Body and background */
-/*---------------------*/
 body {
-  background-color: #C2C3C7;
-  font-family: 'Montserrat', sans-serif;
+  background-color: lightgrey;
+  font-family: Georgia, 'Times New Roman', Times, serif;
 }
+
 header {
   font-size: 50px;
   text-align: center;
   padding: 20px;
 }
 .characterWrapper {
-  width: 75%;
+  width: 100%;
   margin-right: auto;
   margin-left: auto;
 }
@@ -29,11 +27,8 @@ header {
   font-size: 150%;
 }
 
-/*---------------------*/
-/* Character rendering */
-/*---------------------*/
 .character {
-  width: 153px;
+  width: 200px;
   margin: 0px 40px 0px 40px;
   cursor: pointer;
   display: inline-block;
@@ -55,16 +50,16 @@ header {
   text-align: center;
   text-transform: capitalize;
   line-height: 30px;
-  font-family: 'Itim', cursive;
   font-size: 20px;
 }
 .character-health {
   text-align: center;
 }
 
-/*---------------------*/
-/*      Fighting       */
-/*---------------------*/
+#arena {
+  margin: 0 auto;
+}
+
 .attack {
   text-align: center;
 }
@@ -84,37 +79,22 @@ header {
   border-style: solid;
   border-color: black;
   border-width: 1px;
+  border-radius: 10px;
   cursor: pointer;
   display: inline-block;
-  background-color: red;
-  float: left;
+  background-color: darkblue;
 }
 #attacker {
 	padding: 5px;
 }
-.target-enemy {
-  background-color: black;
-  color: white;
-}
 
-/*---------------------*/
-/* Available Oponents  */
-/*---------------------*/
-#available-to-attack-section {
+#opponent-roster {
   float: right;
 }
-#available-to-attack-section img {
+#opponent-roster img {
 	height: 100px;
 }
 
-/*---------------------*/
-/*      Defender       */
-/*---------------------*/
-
-/*#defender {
-  width: 190px;
-  height: 160px;
-}*/
 #defender-name {
   text-align: center;
 }
@@ -126,9 +106,6 @@ header {
   text-align: center;
 }
 
-/*---------------------*/
-/*   Media Queries     */
-/*---------------------*/
 @media only screen and (max-device-width: 768px) {
   .character {
     display: block;
